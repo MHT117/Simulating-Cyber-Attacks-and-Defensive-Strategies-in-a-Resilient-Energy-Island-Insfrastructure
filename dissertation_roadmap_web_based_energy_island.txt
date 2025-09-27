@@ -1,0 +1,378 @@
+ENERGY ISLAND – WEB-BASED CYBERSECURITY DISSERTATION ROADMAP
+Author: K M Mehedi Hassan
+Version: 1.0 (2025-09-27)
+Scope: Turn the Unity “Energy Island” simulation into a web-based research platform (Django backend + Unity WebGL client) to simulate and evaluate cyber-attacks (masquerading, message flooding, spoofing, API under attack) and defenses (authN/authZ, rate-limiting, anomaly detection), and to produce a 12,000-word dissertation with reproducible experiments.
+
+───────────────────────────────────────────────────────────────────────────────
+0) FOUNDATIONS & ASSUMPTIONS
+───────────────────────────────────────────────────────────────────────────────
+- You currently have a working Unity build as a Windows .exe.
+- For the web, you will create a Unity WebGL build (the .exe cannot run in a browser).
+- The platform will be containerized (Docker) and orchestrated with docker-compose for reproducibility.
+- The attack testing will run ONLY within your private lab (laptop/desktop VM or LAN). No tests against third‑party networks.
+- Metrics will capture BOTH gameplay impact (power stability, stakeholder satisfaction) and platform health (latency, error rate, RPS, CPU/RAM).
+- Risk management will align with ISO/IEC 27005; web app security will reference OWASP ASVS; threat modeling will use STRIDE.
+- All code, configs, and results will be versioned in Git with a clear /research folder for experiments, scripts, and raw/processed data.
+- You will produce a 12,000-word paper with a formal method, experiments, and replicability artifacts.
+
+───────────────────────────────────────────────────────────────────────────────
+1) HIGH-LEVEL ARCHITECTURE (WEB-BASED)
+───────────────────────────────────────────────────────────────────────────────
+[Client]
+- Unity WebGL build hosted by Django (static files) or Nginx.
+- Communicates with the backend via HTTPS REST + WebSockets (Django Channels).
+
+[Backend]
+- Django + Django REST Framework (DRF) for API.
+- Django Channels + Redis for WebSockets/event bus.
+- PostgreSQL for persistent data (runs, metrics, users).
+- Nginx reverse proxy, TLS (Let’s Encrypt in production), HTTP/2.
+- Observability: Prometheus (metrics), Grafana (dashboards), Loki or ELK/OpenSearch (logs).
+
+[Security/Defense Layer]
+- AuthN: JWT access/refresh tokens (short TTLs), secret rotation.
+- AuthZ: Role-based access control (RBAC) for user roles (player, admin, attacker-lab).
+- Rate-limiting: Nginx limit_req + DRF throttling + Redis token bucket.
+- Input validation: DRF serializers/pydantic schema validation.
+- Anomaly detection: Simple sliding-window z-score on RPS/errors per token/IP; auto-quarantine list.
+- IDS/WAF (lab): Suricata (IDS) + ModSecurity CRS (optional) in front of Django.
+
+[Attack Simulation Suite]
+- HTTP flood & behavior fuzzing: Locust or k6 for RPS, concurrency, and scenario scripts.
+- WebSocket flood: custom asyncio script; optional k6 ws module.
+- Masquerading/impersonation: malformed/forged JWTs, missing/invalid roles, privilege escalation attempts.
+- Spoofing: application-level “user_id/role” spoof attempts, header spoofing (X-Forwarded-For) under Nginx (document trust model).
+- Packet-craft in lab (optional): scapy/hping3 against a local reverse proxy endpoint (strictly contained).
+
+───────────────────────────────────────────────────────────────────────────────
+2) PHASES, MILESTONES, AND ACCEPTANCE CRITERIA
+───────────────────────────────────────────────────────────────────────────────
+PHASE A — PROJECT BOOTSTRAP (1–2 days)
+A1. Repo hygiene
+  - Create monorepo folders: /unity/, /web/, /infra/, /research/, /docs/.
+  - Add .editorconfig, .gitattributes (line endings), .gitignore for Unity/Python/Node.
+  - Add LICENSE and README with high-level diagram.
+Acceptance: repo contains structure + basic bootstrap docs.
+
+A2. Requirements lock
+  - Python 3.11+, Node (for build tools), Docker Desktop or Docker Engine, Git LFS for large Unity files.
+  - Create /web/requirements.txt (Django, DRF, Channels, Redis, psycopg2, djangorestframework-simplejwt, drf-spectacular, django-axes, django-ratelimit, gunicorn, uvicorn[standard]).
+  - /infra/docker-compose.yml skeleton: postgres, redis, web, nginx, prometheus, grafana, loki (or ELK), suricata (optional), wazuh (optional).
+Acceptance: `docker compose up` brings up DB+Redis+Nginx+placeholder web.
+
+PHASE B — UNITY TO WEBGL MIGRATION (2–4 days)
+B1. Unity project switch to WebGL
+  - In Unity Hub > your project > File > Build Settings > Switch Platform -> WebGL.
+  - Player Settings: 
+    - Resolution and Presentation: set default canvas size; allow fullscreen.
+    - Publishing Settings: Compression Format = Gzip or Brotli; Decompression Fallback = Enabled; Memory Size tuned (e.g., 256–512 MB).
+    - API Compatibility = .NET Standard 2.1; Scripting Backend IL2CPP.
+    - WebGL threads: if using multithreading, ensure SharedArrayBuffer/COOP+COEP headers via Nginx; otherwise disable threads (simpler).
+  - Optimize textures/audio for web; reduce large assets; strip debug logs.
+Acceptance: Local WebGL build runs via Unity’s local server.
+
+B2. WebGL-Django integration
+  - Copy [Build/, TemplateData/] to /web/static/builds/energy-island/ (or serve via Nginx).
+  - Create a minimal Django template serving index.html that embeds the WebGL loader.
+  - Confirm game loads under `http://localhost/` through Nginx->Django static.
+Acceptance: Game loads in browser via the full stack (Nginx->Django->static).
+
+PHASE C — BACKEND API & CONTRACT (3–5 days)
+C1. Entity & endpoints (first pass)
+  - Entities: SessionRun, Metric, Event, Action, Stakeholder, User (RBAC), AttackRun.
+  - Endpoints (DRF): 
+    - POST /api/auth/login (JWT), POST /api/auth/refresh
+    - GET /api/state (current island summary: MW generation, demand, storage, stakeholder sats)
+    - POST /api/actions/place_building, /api/actions/remove_building
+    - WS: /ws/events for real-time telemetry/alerts
+    - GET /api/metrics?from=...&to=...&k=... (returns time series: latency, errors, RPS, game KPIs)
+  - Include OpenAPI via drf-spectacular; auto-generate docs at /api/schema/ and /api/docs/.
+Acceptance: cURL-able endpoints + WebSocket echo channel + auto-docs page.
+
+C2. Client wiring
+  - In Unity, add a thin HTTP client for GET/POST and a WS client for telemetry.
+  - Minimal flows: on scene start, GET /api/state; on placement, POST /api/actions/place_building; subscribe to /ws/events.
+Acceptance: Game can call API and receive events end-to-end.
+
+PHASE D — DEFENSES (AUTHN/Z, RATE-LIMITS, VALIDATION) (3–4 days)
+D1. AuthN/AuthZ
+  - JWT (simplejwt): short-lived access (5–15m), refresh (1–2h), rotate keys per environment.
+  - RBAC: roles = player, admin, attacker_lab; DRF permissions on each endpoint; server-side role enforcement (never trust client roles).
+Acceptance: Protected endpoints reject unauthenticated/unauthorized requests.
+
+D2. Rate-limiting & input validation
+  - Nginx: limit_req_zone (per IP), burst, nodelay for test; separate limits for /api/ and /ws/.
+  - DRF throttles: per-user/token sliding window; Redis-based token bucket for fairness.
+  - DRF serializers validate enums, numeric ranges, and forbidden fields (e.g., role in payload).
+Acceptance: Locust at N RPS triggers 429s as configured; invalid payloads 400/403 consistently.
+
+D3. Anomaly detection & auto-quarantine
+  - Implement middleware tracking per-token/IP RPS over 1s/10s/60s windows.
+  - Simple z-score or EWMA to flag anomalies; push alert to /ws/events; auto-add to temp denylist for X seconds (stored in Redis).
+Acceptance: Synthetic flood triggers anomaly flag + temporary blocks.
+
+PHASE E — ATTACK SUITE (4–6 days)
+E1. Message flooding
+  - Locust: user tasks hitting /api/state and /api/actions/* with mixed read/write ratios; ramp RPS; record latency percentiles (p50/p95/p99) and error rates.
+  - WS flood: asyncio tasks opening many WS connections; send pings/messages.
+Acceptance: Reproduce measurable degradation without defenses; with defenses, service retains SLOs or degrades gracefully.
+
+E2. Masquerading/impersonation
+  - Tests: missing JWT, expired JWT, forged/altered JWT, role escalation attempts; client-side spoof of stakeholder_id ignored by server.
+Acceptance: All attempts fail; server logs + 401/403; no privilege misuse.
+
+E3. Spoofing (application-layer)
+  - Under Nginx, test misleading X-Forwarded-For headers; server must not trust raw header unless set by proxy; log both peer IP and proxied IP with a TRUSTED_PROXIES list.
+  - Attempt user_id in payload; server must ignore and use token subject claim.
+Acceptance: Logs show correct client identity; spoof attempts fail and are evident.
+
+E4. “API under attack” mixed scenario
+  - Compose flood + impersonation attempts + bursts; measure spillover effects on gameplay KPIs (time to place building, event delivery delay).
+Acceptance: With defenses ON, system meets target SLOs; without defenses, KPIs degrade in predictable ways.
+
+PHASE F — OBSERVABILITY & DATA PIPELINE (2–3 days)
+F1. Metrics & logs
+  - Prometheus exporters for Django (django-prometheus), Nginx, Postgres, Redis.
+  - Unity client emits gameplay KPIs to /api/metrics or WS; buffer in Postgres/Timescale or Prometheus pushgateway.
+  - Centralized logs via Loki or ELK/OpenSearch; structured JSON logging (request_id, user_id, role, ip, endpoint, latency_ms, status).
+Acceptance: Grafana dashboards for API health + gameplay KPIs; saved dashboards in /research/dashboards/.
+
+F2. Experiment data capture
+  - Each run folder: /research/runs/YYYYMMDD-HHMM/ containing: configs, docker-compose snapshot, Locust CSV/JSON, Grafana snapshot PNGs, raw logs, processed CSVs, and a RUN.md with scenario parameters.
+Acceptance: One command/script creates a timestamped run folder and exports artifacts.
+
+PHASE G — EXPERIMENT DESIGN & STATISTICS (3–4 days)
+G1. Scenarios
+  - Baseline (no attack), Flood only, Masquerade only, Spoof only, Mixed (API under attack).
+  - Defenses OFF vs ON for each scenario.
+  - 3 independent trials per scenario; fixed duration (e.g., 10 minutes warm-up + 20 minutes steady-state).
+
+G2. Metrics & hypotheses
+  - Platform: avg & p95 latency; error rate; throughput; CPU/RAM utilization.
+  - Gameplay: time-to-action, success rate of building placement, power stability index (variance), stakeholder satisfaction delta.
+  - Hypotheses (examples):
+    H1: Rate-limiting + JWT reduces p95 latency blow-up under flood by ≥50%.
+    H2: RBAC prevents any successful unauthorized action under masquerading (0 incidents).
+    H3: Anomaly auto-quarantine preserves ≥90% of gameplay success rate under mixed attack.
+
+G3. Analysis
+  - Use Python notebooks (/research/analysis/*.ipynb) to compute summary stats and plot time series; check normality if needed; use non-parametric tests (Mann‑Whitney U) for non-normal distributions; report effect sizes.
+Acceptance: A /research/results/ folder contains tables, plots, and a short INTERIM_RESULTS.md.
+
+PHASE H — THREAT MODEL & RISK (ISO/IEC 27005) (1–2 days)
+H1. Asset & context definition (game API, data store, user sessions, admin tools)
+H2. Threat identification (STRIDE): spoofing, tampering, repudiation, info disclosure, denial of service, elevation of privilege.
+H3. Risk assessment: likelihood × impact; control selection mapped to your defenses.
+H4. Residual risk and treatment plan.
+Acceptance: A formal risk register and a diagram included in /docs/.
+
+PHASE I — HARDENING & PEN TEST PASS (1–2 days)
+I1. OWASP ZAP/Burp scan against the test environment; fix high/medium findings.
+I2. Security headers (CSP, HSTS, X-Frame-Options, COOP/COEP for WebGL threads), cookie flags (if any cookies used).
+I3. Backup/restore test for Postgres (pg_dump/pg_restore), secret rotation dry run.
+Acceptance: Documented “secure-by-default” checklist with evidence.
+
+PHASE J — WRITE-UP & ARTIFACTS (ONGOING; FINAL 1–2 WEEKS)
+J1. Maintain a lab notebook (DAILY_LOG.md).
+J2. Prepare figure list (architecture, threat model, dashboards, experiment plots).
+J3. Draft paper sections incrementally (see outline below).
+J4. Final reproducibility appendix: docker-compose, seed data, scripts, and a short HOWTO.
+
+───────────────────────────────────────────────────────────────────────────────
+3) DETAILED IMPLEMENTATION NOTES
+───────────────────────────────────────────────────────────────────────────────
+UNITY → WEBGL QUICK SETTINGS
+- Build Settings: WebGL; Development Build OFF for experiments; use Release.
+- Player Settings:
+  * Publishing: Brotli (best compression), enable Decompression Fallback.
+  * Memory Size: start 512 MB; profile and reduce if possible.
+  * Multithreading: OFF unless you configure COOP/COEP headers.
+  * WebGL Template: Minimal; ensure loader.js path is correct in Django template.
+
+DJANGO BACKEND SCAFFOLD
+- Apps: users/, api/, telemetry/, defense/, attacks/ (lab-only), dashboards/.
+- Core models (suggested):
+  * User(id, email, role)
+  * SessionRun(id, start_ts, end_ts, config_hash)
+  * AttackRun(id, type, params_json, start_ts, end_ts, result_summary)
+  * Metric(ts, key, value, session_id, source)  # key examples: api.latency.p95, game.power.stability
+  * Event(ts, severity, message, session_id, context_json)
+- Example endpoints
+  * GET /api/state → {mw_generation, mw_demand, storage, sats:{gov,ngo,inv,com}, tick}
+  * POST /api/actions/place_building → {type, x, y}  # server validates permissions and business rules
+  * WS /ws/events → push {ts, type, data} for alerts and metric ticks.
+
+SECURITY GUARDRAILS
+- Never trust client-submitted user_id/role/stakeholder_id. Use JWT claims server-side.
+- Log request_id (uuid4) and correlate across services; include user_id and role in logs.
+- Validate payloads strictly; reject unknown fields to avoid mass assignment.
+- Lock CORS to your domain; preflight allowed methods only; set CSRF off for pure token APIs.
+- Rate-limit by IP and by token; different buckets for read vs write endpoints.
+- Nginx should be the only component allowed to set X-Forwarded-* headers (trust proxy list).
+
+OBSERVABILITY
+- Prometheus targets: Nginx, Django, Postgres, Redis.
+- Grafana dashboards:
+  * API Performance: RPS, latency p50/p95/p99, 4xx/5xx rate.
+  * Game KPIs: success rate of actions, time-to-place, power stability index, stakeholder satisfaction trend.
+  * System: CPU, RAM, container restarts.
+- Logging fields: ts, req_id, user_id, role, ip, method, path, status, latency_ms, bytes, error, anomaly_flag.
+
+ATTACK SCRIPTS (LAB)
+- Locustfile.py: user behaviors with wait_time patterns; tasks for /api/state (GET) and /api/actions (POST) with realistic ratios (e.g., 80/20).
+- WS flooder: asyncio script to open N connections and send small messages at an adjustable cadence.
+- JWT attack set: expired token, altered signature, wrong audience, no token.
+- Header spoof test: set X-Forwarded-For; verify server uses proxy-provided client IP only when connecting IP is trusted proxy.
+
+EXPERIMENT CONTROL
+- Each scenario is codified in /research/scenarios/<name>.yml with parameters (duration, users, spawn rate, defense toggles).
+- One Python script orchestrates: (1) docker-compose up with defense toggles, (2) waits for readiness, (3) runs Locust/k6, (4) exports metrics/logs, (5) snapshots Grafana to PNGs, (6) docker-compose down.
+- Random seeds stored in scenario file; repeat 3x per scenario.
+
+RISKS & FALLBACKS
+- WebGL limitations (threads, file I/O, sockets): if blocking, keep Unity gameplay mostly client-side and push only lightweight telemetry; or fall back to streaming via a remote desktop protocol (not preferred academically).
+- If Prometheus/Grafana overhead is high on a laptop, reduce scrape intervals or capture logs only, then post-process.
+- If Suricata setup consumes too much time, keep it optional; focus on application-layer security which maps directly to your research question.
+
+───────────────────────────────────────────────────────────────────────────────
+4) EXPERIMENT TIMELINE (SUGGESTED 4–5 WEEKS FROM TODAY)
+───────────────────────────────────────────────────────────────────────────────
+Week 1
+- A: Bootstrap + infra skeleton; B: Unity WebGL build and Nginx static serving.
+- Start C: Minimal API endpoints + WS echo; wire Unity to call /api/state.
+
+Week 2
+- Finish C: API contract & OpenAPI docs; add actions endpoints.
+- D: Implement JWT RBAC; DRF throttles; Nginx rate limits; serializers validation.
+- F: Add Prometheus & Grafana; basic dashboards for API.
+
+Week 3
+- E1/E2/E3: Implement attack scripts (flood, masquerade, spoof); anomaly detection middleware + quarantine.
+- F2: Run harness exports; create /research/runs structure.
+
+Week 4
+- G: Define scenarios; run Baseline/Attack/Defense-on/off experiments (3 trials each).
+- H: Threat model + ISO/IEC 27005 risk register; I: ZAP scan & hardening.
+
+Week 5 (buffer/write-up)
+- J: Draft figures & tables; write methodology + results + discussion.
+- Cleanup reproducibility pack; final proofreading and supervisor check.
+
+───────────────────────────────────────────────────────────────────────────────
+5) 12,000-WORD DISSERTATION OUTLINE (TARGET WORD COUNTS)
+───────────────────────────────────────────────────────────────────────────────
+Abstract (250)
+1. Introduction (1,200)
+   - Problem: cyber-resilience in interactive energy simulations; why web platform matters.
+   - Contributions: (i) web-based Unity+API testbed, (ii) attack suite, (iii) defense evaluation, (iv) reproducible dataset.
+2. Background & Related Work (1,700)
+   - Smart grids, cyber-physical simulation; OWASP ASVS; rate-limiting/anomaly detection literature; prior Unity/WebGL security notes.
+3. System Design (1,600)
+   - Architecture, components, data flows, threat model (STRIDE), ISO/IEC 27005 context.
+4. Methodology (2,000)
+   - API contract, defenses (JWT, RBAC, limits), observability stack; experimental design; metrics; ethics.
+5. Implementation (1,300)
+   - Unity WebGL details; Django/Channels/Redis; Nginx config; scripts; docker-compose.
+6. Experiments & Results (2,200)
+   - Baseline vs attack; defense off/on; plots; statistical tests; effect sizes; ablations.
+7. Discussion (900)
+   - Interpretation, limitations (WebGL constraints, lab-only); threat surface analysis; generalizability to smart-grid APIs.
+8. Risk Management (ISO/IEC 27005) (600)
+   - Risk register, treatment, residual risk; alignment with standards.
+9. Conclusion & Future Work (650)
+   - Summary; next steps (ML-based anomaly detection, active defense, realistic grid co-sim).
+References (as needed; aim 20–35)
+Appendices (configs, scripts, extended tables, HOWTO, ethics confirmation)
+
+Notes:
+- Keep per-section running log of figures/tables; bind captions to research questions.
+- Use BibTeX/Zotero; maintain consistent IEEE/Harvard style per university guidance.
+
+───────────────────────────────────────────────────────────────────────────────
+6) ACCEPTANCE CRITERIA CHECKLIST (SUBMISSION-READY)
+───────────────────────────────────────────────────────────────────────────────
+[ ] Game runs as WebGL through Nginx/Django.
+[ ] API endpoints + WS documented (OpenAPI).
+[ ] Defenses implemented and measurable (JWT, RBAC, rate-limits, validation, anomaly block).
+[ ] Attack suite reproducible; results captured in /research/runs with artifacts.
+[ ] Grafana dashboards + logs exported; plots included in paper.
+[ ] Threat model (STRIDE) and ISO/IEC 27005 risk register included.
+[ ] ZAP/Burp scan completed; security headers configured; backup/restore tested.
+[ ] 12,000-word draft complete with figures, tables, references, and appendix.
+[ ] Reproducibility pack (docker-compose, scripts, seeds) validated on a clean machine.
+
+───────────────────────────────────────────────────────────────────────────────
+7) MINIMUM COMMANDS & FILE STUBS (REFERENCE)
+───────────────────────────────────────────────────────────────────────────────
+docker-compose.yml (sketch)
+--------------------------------
+version: "3.9"
+services:
+  postgres:
+    image: postgres:16
+    environment: [POSTGRES_PASSWORD=postgres]
+    volumes: [pgdata:/var/lib/postgresql/data]
+  redis:
+    image: redis:7
+  web:
+    build: ./web
+    depends_on: [postgres, redis]
+    environment: [DJANGO_SETTINGS_MODULE=config.settings]
+  nginx:
+    image: nginx:stable
+    depends_on: [web]
+    volumes: 
+      - ./infra/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./web/static:/usr/share/nginx/html:ro
+  prometheus:
+    image: prom/prometheus
+  grafana:
+    image: grafana/grafana
+volumes: { pgdata: {} }
+
+Nginx rate limit (snippet)
+--------------------------------
+limit_req_zone $binary_remote_addr zone=api_limit:10m rate=5r/s;
+server {
+  location /api/ {
+    limit_req zone=api_limit burst=10 nodelay;
+    proxy_pass http://web:8000;
+  }
+}
+
+DRF throttle (settings.py snippet)
+--------------------------------
+REST_FRAMEWORK = {
+  "DEFAULT_THROTTLE_CLASSES": [
+    "rest_framework.throttling.UserRateThrottle",
+    "rest_framework.throttling.AnonRateThrottle",
+  ],
+  "DEFAULT_THROTTLE_RATES": {"user": "10/second", "anon": "2/second"},
+}
+
+Locust sketch (locustfile.py)
+--------------------------------
+from locust import HttpUser, task, between
+class Player(HttpUser):
+    wait_time = between(0.1, 0.5)
+    @task(8)
+    def read_state(self):
+        self.client.get("/api/state")
+    @task(2)
+    def place_building(self):
+        self.client.post("/api/actions/place_building", json={"type":"solar","x":10,"y":5})
+
+───────────────────────────────────────────────────────────────────────────────
+8) ETHICS & SAFETY STATEMENT (TO INCLUDE IN PAPER)
+───────────────────────────────────────────────────────────────────────────────
+All attack simulations are constrained to a private testbed under my control. No real users or third‑party services are targeted. Data captured contains no personal information. The goal is to evaluate defensive strategies for system reliability and user experience under duress, not to disrupt real infrastructure.
+
+───────────────────────────────────────────────────────────────────────────────
+9) NEXT ACTIONS (START HERE)
+───────────────────────────────────────────────────────────────────────────────
+1) Create the monorepo structure and docker-compose skeleton.
+2) Export Unity WebGL build and serve it via Django/Nginx end-to-end.
+3) Implement minimal API (state/action) + JWT + DRF throttles.
+4) Add Prometheus & Grafana; one dashboard with p50/p95 latency + 4xx/5xx.
+5) Build Locust flood and JWT attack scripts; run first baseline vs flood test.
+6) Snapshot results, commit artifacts, and start writing Methodology section.
