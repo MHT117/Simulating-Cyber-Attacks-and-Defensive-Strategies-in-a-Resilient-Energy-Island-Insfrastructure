@@ -14,9 +14,11 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "channels",
     "rest_framework",
     "corsheaders",   # dev only; lock down later
     "api",
+    "telemetry",
 ]
 
 MIDDLEWARE = [
@@ -31,6 +33,7 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = "config.urls"
+ASGI_APPLICATION = "config.asgi.application"
 
 TEMPLATES = [
     {
@@ -94,3 +97,9 @@ SIMPLE_JWT = {
 }
 
 CORS_ALLOW_ALL_ORIGINS = True
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
+    }
+}

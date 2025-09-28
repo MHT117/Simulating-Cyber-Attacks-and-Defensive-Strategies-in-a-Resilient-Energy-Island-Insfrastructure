@@ -1,0 +1,22 @@
+<!doctype html>
+<html>
+  <head><meta charset="utf-8"><title>WS Test</title></head>
+  <body>
+    <button id="open">Open WS</button>
+    <button id="send">Send {"msg":"hi"}</button>
+    <pre id="log"></pre>
+    <script>
+      let ws;
+      const log = (x) => document.getElementById("log").textContent += x + "\n";
+      document.getElementById("open").onclick = () => {
+        ws = new WebSocket("ws://127.0.0.1:8000/ws/events/");
+        ws.onopen = () => log("OPEN");
+        ws.onmessage = (e) => log("MSG " + e.data);
+        ws.onclose = () => log("CLOSE");
+      };
+      document.getElementById("send").onclick = () => {
+        if (ws && ws.readyState === 1) ws.send(JSON.stringify({msg:"hi"}));
+      };
+    </script>
+  </body>
+</html>
