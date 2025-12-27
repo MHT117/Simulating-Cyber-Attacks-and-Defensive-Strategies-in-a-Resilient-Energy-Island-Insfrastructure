@@ -1,0 +1,24 @@
+# Run: secure_mixed_80_20
+
+- Date: 2025-12-27
+- Host: http://localhost:8080
+- Users: 80
+- Spawn rate: 8 / second
+- Duration: 3 minutes
+- Mix:
+  - Valid JWT traffic: 80% (GoodJWTUser weight 8)
+  - Invalid token traffic: 20% (BadJWTUser weight 2)
+- Defenses active:
+  - Nginx rate limit: ON (see infra/nginx.conf)
+  - DRF throttles: anon 5/second, user 10/second
+- Aggregated results (from stats.csv):
+  - Requests: 15165
+  - Failures: 14268
+  - Avg latency: 12.33 ms
+  - Median: 1 ms
+  - p95: 8 ms
+  - p99: 52 ms
+  - RPS: 84.73
+- Notes:
+  - Many invalid-token requests expected 401, but upstream returned 503 under load.
+  - Valid requests also saw 503s, indicating saturation before auth checks.

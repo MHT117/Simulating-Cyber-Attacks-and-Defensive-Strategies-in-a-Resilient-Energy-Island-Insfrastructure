@@ -1,0 +1,24 @@
+# Run: secure_valid_only
+
+- Date: 2025-12-27
+- Host: http://localhost:8080
+- Users: 50
+- Spawn rate: 5 / second
+- Duration: 2 minutes
+- Mix:
+  - Valid JWT traffic: 100%
+  - Invalid token traffic: 0% (LOCUST_BAD_WEIGHT=0)
+- Defenses active:
+  - Nginx rate limit: ON (see infra/nginx.conf)
+  - DRF throttles: anon 5/second, user 10/second
+- Aggregated results (from stats.csv):
+  - Requests: 4282
+  - Failures: 3675
+  - Avg latency: 4.84 ms
+  - Median: 1 ms
+  - p95: 13 ms
+  - p99: 52 ms
+  - RPS: 35.80
+- Notes:
+  - Failures dominated by 503 responses from Nginx/upstream under load.
+  - A few 429s appear due to throttling.

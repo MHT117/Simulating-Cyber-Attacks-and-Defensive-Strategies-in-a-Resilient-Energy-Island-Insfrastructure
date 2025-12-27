@@ -1,0 +1,23 @@
+# Run: auth_login_storm
+
+- Date: 2025-12-27
+- Host: http://localhost:8080
+- Users: 40
+- Spawn rate: 10 / second
+- Duration: 2 minutes
+- Mix:
+  - Only /api/auth/token/ requests
+- Defenses active:
+  - Nginx rate limit: ON (see infra/nginx.conf)
+  - DRF throttles: anon 5/second, user 10/second
+- Aggregated results (from stats.csv):
+  - Requests: 42529
+  - Failures: 42023
+  - Avg latency: 7.14 ms
+  - Median: 2 ms
+  - p95: 29 ms
+  - p99: 220 ms
+  - RPS: 356.02
+- Notes:
+  - Very high 503 rate from Nginx/upstream under login pressure.
+  - A small number of 429s appear from rate limits.

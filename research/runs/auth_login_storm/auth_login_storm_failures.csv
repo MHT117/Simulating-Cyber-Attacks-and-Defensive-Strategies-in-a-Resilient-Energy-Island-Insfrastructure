@@ -1,0 +1,3 @@
+Method,Name,Error,Occurrences
+POST,/api/auth/token/,HTTPError('503 Server Error: Service Temporarily Unavailable for url: /api/auth/token/'),41927
+POST,/api/auth/token/,HTTPError('429 Client Error: Unknown Status for url: /api/auth/token/'),96
