@@ -1,0 +1,33 @@
+# Run: secure_valid_only_defended
+
+- Date: 2025-12-27
+- Host: http://localhost:8080
+- Users: 50
+- Spawn rate: 5 / second
+- Duration: 2 minutes
+- Mix:
+  - Valid JWT traffic: 100% (LOCUST_BAD_WEIGHT=0)
+  - Invalid token traffic: 0%
+- Nginx rate limits:
+  - /api/auth/*: 2 r/m, burst 5
+  - /api/secure/*: 20 r/s, burst 20
+  - /api/* (public): 10 r/s, burst 20
+- DRF throttle scopes:
+  - public_state: 10/second
+  - secure: 20/second
+  - auth_token: 2/minute
+- Abuse middleware:
+  - Window: 60s
+  - Max 401: 15
+  - Block: 600s
+  - Allow local: true
+- Aggregated results (from stats.csv):
+  - Requests: 275
+  - Failures: 275
+  - Avg latency: 43.35 ms
+  - Median: 40 ms
+  - p95: 83 ms
+  - p99: 88 ms
+  - RPS: 29.90
+- Notes:
+  - Token issuance is heavily throttled, so users failed at login before hitting secure endpoints.

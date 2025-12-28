@@ -7,10 +7,51 @@ services:
 
   nginx:
     image: nginx:stable
-    depends_on:
-      - redis
     ports:
       - "8080:80"
     volumes:
       - ./web/static:/usr/share/nginx/html/static:ro
       - ./infra/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - redis
+
+  nginx_exporter:
+    image: nginx/nginx-prometheus-exporter:1.1.0
+    depends_on:
+      - nginx
+    command:
+      - -nginx.scrape-uri=http://nginx/nginx_status
+    ports:
+      - "9113:9113"
+
+  redis_exporter:
+    image: oliver006/redis_exporter:v1.66.0
+    depends_on:
+      - redis
+    environment:
+      - REDIS_ADDR=redis://redis:6379
+    ports:
+      - "9121:9121"
+
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./infra/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    depends_on:
+      - nginx_exporter
+      - redis_exporter
+
+  grafana:
+    image: grafana/grafana:11.1.0
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - ./infra/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./infra/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      - prometheus

@@ -1,15 +1,16 @@
 from django.urls import path
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from .views import state_public, state_secure, ping_secure
+from .views import state_public, state_secure, ping_secure, mark
+from .auth_views import TokenObtainPairThrottledView, TokenRefreshThrottledView
 
 urlpatterns = [
-    # Auth (JWT)
-    path("auth/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
-    path("auth/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
+    # Auth (JWT) throttled
+    path("auth/token/", TokenObtainPairThrottledView.as_view(), name="token_obtain_pair"),
+    path("auth/refresh/", TokenRefreshThrottledView.as_view(), name="token_refresh"),
 
     # Public (no token)
     path("state", state_public),
     path("state/", state_public),
+    path("mark/", mark),
 
     # Secure (JWT required)
     path("secure/state", state_secure),

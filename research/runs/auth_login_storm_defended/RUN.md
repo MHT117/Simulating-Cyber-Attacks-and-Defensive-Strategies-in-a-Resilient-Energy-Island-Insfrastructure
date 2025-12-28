@@ -1,0 +1,32 @@
+# Run: auth_login_storm_defended
+
+- Date: 2025-12-27
+- Host: http://localhost:8080
+- Users: 40
+- Spawn rate: 10 / second
+- Duration: 2 minutes
+- Mix:
+  - Only /api/auth/token/ requests
+- Nginx rate limits:
+  - /api/auth/*: 2 r/m, burst 5
+  - /api/secure/*: 20 r/s, burst 20
+  - /api/* (public): 10 r/s, burst 20
+- DRF throttle scopes:
+  - public_state: 10/second
+  - secure: 20/second
+  - auth_token: 2/minute
+- Abuse middleware:
+  - Window: 60s
+  - Max 401: 15
+  - Block: 600s
+  - Allow local: true
+- Aggregated results (from stats.csv):
+  - Requests: 44337
+  - Failures: 44337
+  - Avg latency: 4.03 ms
+  - Median: 1 ms
+  - p95: 25 ms
+  - p99: 43 ms
+  - RPS: 371.59
+- Notes:
+  - Login storm is absorbed by edge + app throttles; almost all requests rejected.

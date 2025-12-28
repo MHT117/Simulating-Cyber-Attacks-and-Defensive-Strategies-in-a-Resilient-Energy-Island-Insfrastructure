@@ -1,0 +1,34 @@
+# Run: secure_mixed_80_20_defended
+
+- Date: 2025-12-27
+- Host: http://localhost:8080
+- Users: 80
+- Spawn rate: 8 / second
+- Duration: 3 minutes
+- Mix:
+  - Valid JWT traffic: 80% (GoodJWTUser weight 8)
+  - Invalid token traffic: 20% (BadJWTUser weight 2)
+- Nginx rate limits:
+  - /api/auth/*: 2 r/m, burst 5
+  - /api/secure/*: 20 r/s, burst 20
+  - /api/* (public): 10 r/s, burst 20
+- DRF throttle scopes:
+  - public_state: 10/second
+  - secure: 20/second
+  - auth_token: 2/minute
+- Abuse middleware:
+  - Window: 60s
+  - Max 401: 15
+  - Block: 600s
+  - Allow local: true
+- Aggregated results (from stats.csv):
+  - Requests: 5534
+  - Failures: 5507
+  - Avg latency: 192.12 ms
+  - Median: 2 ms
+  - p95: 30 ms
+  - p99: 150 ms
+  - RPS: 40.32
+- Notes:
+  - Invalid-token requests were blocked with 403 after repeated 401s (abuse middleware).
+  - Token issuance remained heavily throttled (503/429).
