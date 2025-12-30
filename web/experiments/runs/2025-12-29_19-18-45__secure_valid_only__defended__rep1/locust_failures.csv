@@ -1,0 +1,7 @@
+Method,Name,Error,Occurrences
+POST,AUTH_TOKEN,CatchResponseError('token_endpoint_status=500'),2
+GET,SECURE_PING_VALID,HTTPError('403 Client Error: Forbidden for url: SECURE_PING_VALID'),1156
+POST,AUTH_TOKEN,CatchResponseError('token_endpoint_status=403'),8
+GET,SECURE_PING_VALID,HTTPError('401 Client Error: Unauthorized for url: SECURE_PING_VALID'),2
+GET,SECURE_STATE_VALID,HTTPError('403 Client Error: Forbidden for url: SECURE_STATE_VALID'),1156
+GET,SECURE_STATE_VALID,HTTPError('401 Client Error: Unauthorized for url: SECURE_STATE_VALID'),2

@@ -1,0 +1,11 @@
+{
+  "users": 10,
+  "spawn_rate": 2,
+  "run_id": "baseline_public_state__baseline__r03__20251230_153907",
+  "duration": "2m",
+  "host": "http://127.0.0.1:8000",
+  "started_at": "2025-12-30T15:39:07.7372606+00:00",
+  "scenario": "baseline_public_state",
+  "repeat": 3,
+  "condition": "baseline"
+}

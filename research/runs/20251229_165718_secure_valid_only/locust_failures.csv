@@ -1,0 +1,3 @@
+Method,Name,Error,Occurrences
+POST,/api/auth/token/,HTTPError('429 Client Error: Unknown Status for url: /api/auth/token/'),3798
+POST,/api/auth/token/,HTTPError('401 Client Error: Unauthorized for url: /api/auth/token/'),4

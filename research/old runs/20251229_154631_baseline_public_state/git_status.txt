@@ -1,0 +1,14 @@
+?? analysis/
+?? egisland/Scripts/f2py.exe
+?? egisland/Scripts/fonttools.exe
+?? egisland/Scripts/numpy-config.exe
+?? egisland/Scripts/pyftmerge.exe
+?? egisland/Scripts/pyftsubset.exe
+?? egisland/Scripts/ttx.exe
+?? egisland/share/
+?? paper_assets/
+?? research/runs/20251229_154433_baseline_public_state/
+?? research/runs/20251229_154515_baseline_public_state/
+?? research/runs/20251229_154631_baseline_public_state/
+?? scripts/
+

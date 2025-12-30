@@ -1,0 +1,10 @@
+{
+  "name": "baseline_public_state",
+  "timestamp": "20251229_172432",
+  "host": "http://127.0.0.1:8000",
+  "users": 50,
+  "spawn_rate": 5,
+  "run_time": "2m",
+  "locustfile": "loadtests\\locust_public_state.py",
+  "defenses_on": false
+}

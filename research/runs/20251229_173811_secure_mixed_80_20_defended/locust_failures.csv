@@ -1,0 +1,5 @@
+Method,Name,Error,Occurrences
+GET,/api/secure/ping (valid),HTTPError('401 Client Error: Unauthorized for url: /api/secure/ping (valid)'),11067
+POST,/api/auth/token/,HTTPError('429 Client Error: Unknown Status for url: /api/auth/token/'),78
+POST,/api/auth/token/,HTTPError('401 Client Error: Unauthorized for url: /api/auth/token/'),2
+GET,/api/secure/ping (invalid),HTTPError('401 Client Error: Unauthorized for url: /api/secure/ping (invalid)'),44130

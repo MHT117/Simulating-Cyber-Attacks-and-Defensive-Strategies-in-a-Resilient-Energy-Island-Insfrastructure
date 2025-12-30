@@ -1,0 +1,4 @@
+Method,Name,Error,Occurrences
+GET,SECURE_STATE,CatchResponseError('SECURE_STATE HTTP 401'),24413
+POST,AUTH_TOKEN,CatchResponseError('AUTH_TOKEN HTTP 429'),48844
+GET,SECURE_PING,CatchResponseError('SECURE_PING HTTP 401'),24426

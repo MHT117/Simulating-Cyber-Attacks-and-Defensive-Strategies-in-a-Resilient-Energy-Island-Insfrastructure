@@ -1,0 +1,4 @@
+Method,Name,Error,Occurrences
+POST,AUTH_TOKEN,CatchResponseError('token_endpoint_status=500'),10
+GET,SECURE_PING_VALID,HTTPError('401 Client Error: Unauthorized for url: SECURE_PING_VALID'),1154
+GET,SECURE_STATE_VALID,HTTPError('401 Client Error: Unauthorized for url: SECURE_STATE_VALID'),1154

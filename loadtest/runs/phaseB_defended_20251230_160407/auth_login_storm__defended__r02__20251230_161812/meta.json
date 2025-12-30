@@ -1,0 +1,11 @@
+{
+  "run_id": "auth_login_storm__defended__r02__20251230_161812",
+  "host": "http://127.0.0.1:8000",
+  "scenario": "auth_login_storm",
+  "started_at": "2025-12-30T16:18:12.0712374+00:00",
+  "spawn_rate": 20,
+  "duration": "2m",
+  "users": 50,
+  "repeat": 2,
+  "condition": "defended"
+}

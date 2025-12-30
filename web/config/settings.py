@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 from datetime import timedelta
 
@@ -27,7 +28,7 @@ MIDDLEWARE = [
     "django_prometheus.middleware.PrometheusAfterMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "corsheaders.middleware.CorsMiddleware",   # <-- add
-    "api.abuse_middleware.AbuseBlockMiddleware",
+    "api.abuse_middleware.AbuseProtectionMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -76,6 +77,22 @@ STATICFILES_DIRS = [BASE_DIR / "static"]
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+DEFENSES_ON = os.getenv("DEFENSES_ON", "1") == "1"
+
+DEFAULT_THROTTLE_RATES = {
+    "public_state": "10/second",
+    "secure": "20/second",
+    "auth_token": "2/minute",
+}
+
+if not DEFENSES_ON:
+    # Effectively disable throttling when defenses are OFF.
+    DEFAULT_THROTTLE_RATES = {
+        "public_state": "100000/second",
+        "secure": "100000/second",
+        "auth_token": "100000/second",
+    }
+
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
@@ -86,11 +103,7 @@ REST_FRAMEWORK = {
     "DEFAULT_THROTTLE_CLASSES": [
         "rest_framework.throttling.ScopedRateThrottle",
     ],
-    "DEFAULT_THROTTLE_RATES": {
-        "public_state": "10/second",
-        "secure": "20/second",
-        "auth_token": "2/minute",
-    },
+    "DEFAULT_THROTTLE_RATES": DEFAULT_THROTTLE_RATES,
 }
 
 SIMPLE_JWT = {

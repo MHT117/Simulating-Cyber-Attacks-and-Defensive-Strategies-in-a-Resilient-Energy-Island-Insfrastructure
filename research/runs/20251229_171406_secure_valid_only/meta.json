@@ -1,0 +1,10 @@
+{
+  "name": "secure_valid_only",
+  "timestamp": "20251229_171406",
+  "host": "http://127.0.0.1:8000",
+  "users": 20,
+  "spawn_rate": 2,
+  "run_time": "2m",
+  "locustfile": "loadtests\\locust_secure_valid_only.py",
+  "defenses_on": false
+}

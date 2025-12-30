@@ -1,0 +1,9 @@
+run_dir,scenario,defense,notes,users,spawn_rate,run_time,git_commit,requests_total,failures_total,failure_rate_total,avg_rt_ms_total,median_rt_ms_total,p95_ms_total,p99_ms_total,prom_start_present,prom_end_present
+2025-12-29_19-06-40__baseline_public_state__baseline__rep1,baseline_public_state,baseline,rep1,,,,,1157,0,0.0,5.439202852089155,5.0,7.0,13.0,False,False
+2025-12-29_19-08-40__auth_login_storm__attacked__rep1,auth_login_storm,attacked,rep1,,,,,1158,1158,1.0,20.12839481882576,17.0,34.0,55.0,False,False
+2025-12-29_19-10-41__secure_valid_only__baseline__rep1,secure_valid_only,baseline,rep1,,,,,2344,2344,1.0,5.976686732171647,5.0,9.0,21.0,False,False
+2025-12-29_19-12-41__secure_valid_only__attacked__rep1,secure_valid_only,attacked,rep1,,,,,2318,2318,1.0,5.844516910968559,5.0,8.0,19.0,False,False
+2025-12-29_19-14-42__secure_mixed__baseline__rep1,secure_mixed,baseline,rep1,,,,,2314,2314,1.0,5.902238504455225,5.0,8.0,19.0,False,False
+2025-12-29_19-16-42__secure_mixed__attacked__rep1,secure_mixed,attacked,rep1,,,,,2306,2306,1.0,5.932199306253861,5.0,8.0,19.0,False,False
+2025-12-29_19-18-45__secure_valid_only__defended__rep1,secure_valid_only,defended,rep1,,,,,2326,2326,1.0,4.067247936086988,4.0,6.0,13.0,False,False
+2025-12-29_19-20-46__secure_mixed__defended__rep1,secure_mixed,defended,rep1,,,,,2320,2320,1.0,3.951663577528711,4.0,6.0,12.0,False,False

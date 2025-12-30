@@ -1,0 +1,10 @@
+{
+  "name": "auth_login_storm",
+  "timestamp": "20251229_165305",
+  "host": "http://127.0.0.1:8000",
+  "users": 40,
+  "spawn_rate": 10,
+  "run_time": "2m",
+  "locustfile": "loadtests\\locust_auth_login_storm.py",
+  "defenses_on": false
+}

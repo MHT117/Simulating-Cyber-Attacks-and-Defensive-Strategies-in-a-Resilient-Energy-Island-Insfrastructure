@@ -1,0 +1,24 @@
+ M web/config/settings.py
+?? analysis/
+?? egisland/Scripts/f2py.exe
+?? egisland/Scripts/fonttools.exe
+?? egisland/Scripts/numpy-config.exe
+?? egisland/Scripts/pyftmerge.exe
+?? egisland/Scripts/pyftsubset.exe
+?? egisland/Scripts/ttx.exe
+?? egisland/share/
+?? loadtests/
+?? paper_assets/
+?? research/runs/20251229_154433_baseline_public_state/
+?? research/runs/20251229_154515_baseline_public_state/
+?? research/runs/20251229_154631_baseline_public_state/
+?? research/runs/20251229_165058_baseline_public_state/
+?? research/runs/20251229_165305_auth_login_storm/
+?? research/runs/20251229_165511_auth_login_storm_defended/
+?? research/runs/20251229_165718_secure_valid_only/
+?? research/runs/20251229_165925_secure_valid_only_defended/
+?? research/runs/20251229_170131_secure_mixed_80_20/
+?? research/runs/20251229_170439_secure_mixed_80_20_defended/
+?? research/runs/20251229_170746_baseline_public_state/
+?? scripts/
+

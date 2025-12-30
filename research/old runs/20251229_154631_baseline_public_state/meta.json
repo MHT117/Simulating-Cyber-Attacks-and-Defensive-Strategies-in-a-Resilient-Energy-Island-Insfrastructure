@@ -1,0 +1,9 @@
+{
+  "name": "baseline_public_state",
+  "timestamp": "20251229_154631",
+  "host": "http://localhost:8080",
+  "users": 50,
+  "spawn_rate": 5,
+  "run_time": "2m",
+  "locustfile": "perf\\locustfile.py"
+}

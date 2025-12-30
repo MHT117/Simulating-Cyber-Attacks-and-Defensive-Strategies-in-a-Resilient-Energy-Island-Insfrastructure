@@ -1,0 +1,11 @@
+{
+  "run_id": "secure_mixed_80_20__defended__r02__20251230_161210",
+  "host": "http://127.0.0.1:8000",
+  "scenario": "secure_mixed_80_20",
+  "started_at": "2025-12-30T16:12:10.3072203+00:00",
+  "spawn_rate": 15,
+  "duration": "2m",
+  "users": 75,
+  "repeat": 2,
+  "condition": "defended"
+}

@@ -1,0 +1,11 @@
+{
+  "users": 75,
+  "spawn_rate": 15,
+  "run_id": "secure_mixed_80_20__attacked__r02__20251230_154910",
+  "duration": "2m",
+  "host": "http://127.0.0.1:8000",
+  "started_at": "2025-12-30T15:49:10.6292017+00:00",
+  "scenario": "secure_mixed_80_20",
+  "repeat": 2,
+  "condition": "attacked"
+}

@@ -1,0 +1,10 @@
+{
+  "name": "secure_mixed_80_20",
+  "timestamp": "20251229_171819",
+  "host": "http://127.0.0.1:8000",
+  "users": 80,
+  "spawn_rate": 8,
+  "run_time": "3m",
+  "locustfile": "loadtests\\locust_secure_mixed_80_20.py",
+  "defenses_on": false
+}

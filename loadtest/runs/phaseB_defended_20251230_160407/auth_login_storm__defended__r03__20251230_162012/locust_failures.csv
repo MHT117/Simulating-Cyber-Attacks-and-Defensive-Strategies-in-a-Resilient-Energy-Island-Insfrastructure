@@ -1,0 +1,6 @@
+Method,Name,Error,Occurrences
+POST,AUTH_TOKEN,CatchResponseError('AUTH_TOKEN(valid) HTTP 403'),2785
+POST,AUTH_TOKEN,CatchResponseError('AUTH_TOKEN(valid) HTTP 429'),10
+POST,AUTH_TOKEN,CatchResponseError('AUTH_TOKEN HTTP 401'),4
+POST,AUTH_TOKEN,CatchResponseError('AUTH_TOKEN HTTP 403'),52492
+POST,AUTH_TOKEN,CatchResponseError('AUTH_TOKEN HTTP 429'),286

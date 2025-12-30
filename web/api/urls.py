@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import include, path
 from .views import state_public, state_secure, ping_secure, mark
 from .auth_views import TokenObtainPairThrottledView, TokenRefreshThrottledView
 
@@ -17,4 +17,7 @@ urlpatterns = [
     path("secure/state/", state_secure),
     path("secure/ping", ping_secure),
     path("secure/ping/", ping_secure),
+
+    # Defense runtime toggle (local/dev only)
+    path("admin/", include("api.defense_urls")),
 ]

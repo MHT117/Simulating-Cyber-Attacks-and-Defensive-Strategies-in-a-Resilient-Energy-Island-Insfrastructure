@@ -1,0 +1,6 @@
+Method,Name,Error,Occurrences
+GET,SECURE_PING_INVALID,HTTPError('403 Client Error: Forbidden for url: SECURE_PING_INVALID'),235
+GET,SECURE_PING_VALID,HTTPError('403 Client Error: Forbidden for url: SECURE_PING_VALID'),920
+POST,AUTH_TOKEN,CatchResponseError('token_endpoint_status=403'),10
+GET,SECURE_STATE_VALID,HTTPError('403 Client Error: Forbidden for url: SECURE_STATE_VALID'),920
+GET,SECURE_STATE_INVALID,HTTPError('403 Client Error: Forbidden for url: SECURE_STATE_INVALID'),235

@@ -1,0 +1,11 @@
+from django.contrib import admin
+from django.urls import path, include
+from django.views.generic import TemplateView
+
+urlpatterns = [
+    path("", TemplateView.as_view(template_name="index_wrapper.html")),
+    path("ws-test", TemplateView.as_view(template_name="ws_test.html")),  # test page
+    path("api/", include("api.urls")),
+    path("", include("django_prometheus.urls")),
+    path("admin/", admin.site.urls),
+]
